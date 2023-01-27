@@ -1,7 +1,6 @@
 from pytube import YouTube
 import tkinter as tk
 from tkinter import messagebox
-from time import sleep
 import os
 
 
@@ -19,26 +18,23 @@ def downloader():
     if file.get() == "mp4":
         print("downloading mp4")
         video_download = video.streams.get_highest_resolution()
-        video_download.download(str(path.get()))
+        video_download.download(str(paths.get()))
 
     if file.get() == "mp3":
         print("Downloading mp3")
         video_download = video.streams.filter(only_audio=True).first()
-        out_file = video_download.download(str(path.get()))
+        out_file = video_download.download(str(paths.get()))
         base, ext = os.path.splitext(out_file)
         new_file = base + '.mp3'
         os.rename(out_file, new_file)
 
     messagebox.showinfo("Video download", "Complete" f"\n Downloaded {str(YouTube.title)} as {file.get()}")
     link.set("")
-
     return
 
 
-
 def errorWindow(errorCode, message):
-    messagebox.showinfo(f"Error {errorCode}", message)
-
+    messagebox.showerror(f"Error {errorCode}", message)
 
 
 if __name__ == '__main__':
@@ -55,8 +51,9 @@ if __name__ == '__main__':
     yt = tk.Label(window, text="Youtube Downloader")
     yt.pack(padx=20, pady=30)
 
+
     link = tk.StringVar()
-    enter_link = tk.Label(window, text="Enter video link:").pack()
+    tk.Label(window, text="Enter video link:", height=-2, ).pack()
     entry = tk.Entry(window, width=50)
     entry.pack(padx=30, pady=30)
 
@@ -65,8 +62,9 @@ if __name__ == '__main__':
 
 
     paths = tk.StringVar()
-    path = tk.Entry(window, width=50, textvariable=paths)
-    paths.set(fr"C:/Users/{os.getlogin()}/Downloads").pack(padx=30, pady=30)
+    path = tk.Entry(window, width=50, textvariable=paths).pack(padx=30, pady=30)
+    paths.set(fr"C:/Users/{os.getlogin()}/Downloads")
+
 
     file = tk.StringVar()
     file.set("mp3")
