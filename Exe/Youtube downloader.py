@@ -1,12 +1,12 @@
 from pytube import YouTube
-from PIL import Image
+from pathlib import Path
+from PIL import Image, ImageTk
 import customtkinter
 import tkinter
 from tkinter import messagebox
 import os
 from getImageUrl import getImage
 from time import sleep
-from pathlib import Path
 
 
 # shortcuts for widgets ex: Button(master=app, text="Press me!")
@@ -59,7 +59,6 @@ def downloader():  # Downloads the youtube video
                     print(f"Retry -> Name = {name}")
                     name += 1
 
-        thumbnail.close()
         sleep(1)
     messagebox.showinfo("Download complete", "Sucessfully downloaded video")
 
@@ -99,6 +98,7 @@ if __name__ == "__main__":
         app, placeholder_text="Youtube link", width=300)
     link.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
 
+    # folder png
     scriptDir = Path(__file__).parent
     imgpath = scriptDir / 'folder.png'
     folder = Image.open(imgpath)

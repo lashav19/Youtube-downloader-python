@@ -1,7 +1,8 @@
 from PIL import Image
 from io import BytesIO
 import requests
-
+from tempfile import TemporaryFile
+from pytube import YouTube
 yt = "https://www.youtube.com/watch?v=jBuc76nfuKA"
 
 
