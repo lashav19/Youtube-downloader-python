@@ -1,6 +1,7 @@
-from PIL import Image, ImageTk
+from PIL import Image
 from io import BytesIO
 from pytube import YouTube
+from tkinter import messagebox
 import os
 import requests
 
@@ -19,20 +20,26 @@ def getImage(URL):
     return img
 
 
-def download_video(link: str, file_type: str, download_dir: str):
+def download_video(link: str, file_type: str, download_dir: str, callback):
     """
     Downloads a youtube video either mp3 or mp4 using pytube
     Usage: download_video(link, "mp3" download_dir)
     """
-    # Checks which filetype is used
-    video_download = None
+
+    def progress(chunk, file, bytes_remaining):
+        percent = (stream.filesize - bytes_remaining) / stream.filesize * 100
+        callback(percent)
+
+
     video = YouTube(link)
+    #checks which filetype is used
     if file_type == "mp4":  # Downloads highest mp4 resolution
-        video.streams.get_highest_resolution().download(download_dir)
+        stream = video.streams.get_highest_resolution().download(download_dir)
+
 
     if file_type == "mp3":  # video as only audio then renames the file to .mp3
-        audio_stream = video.streams.filter(only_audio=True).first()
-        out_file = audio_stream.download(download_dir)
+        stream = video.streams.filter(only_audio=True).first()
+        out_file = stream.download(download_dir, progress_callback=progress)
         base, ext = os.path.splitext(out_file)
         new_file = base + '.mp3'
         # Renaming the file to mp3 because it downloads as a "mp4" file with no video
@@ -51,7 +58,9 @@ def download_video(link: str, file_type: str, download_dir: str):
                 except FileExistsError:
                     print(f"Retry -> Name = {name}")
                     name += 1
-
+        video.register_on_complete_callback(on_complete)
+def on_complete():
+    messagebox.showinfo("Download complete", "Successfully downloaded video")
 
 def getThumbnail(link):
     thumbnail = YouTube(link).thumbnail_url

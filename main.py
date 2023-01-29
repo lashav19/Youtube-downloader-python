@@ -1,7 +1,6 @@
 import customtkinter
 import tkinter
 from tkinter import messagebox
-import os
 from downloader_functions import *
 from time import sleep
 import threading
@@ -31,10 +30,13 @@ def downloader():  # Downloads the youtube video
     app.update_idletasks()
 
     # calls function to download the video
-    download_video(link.get(), filetype.get(), directory.get())
+    download_thread = threading.Thread(download_video(link.get(), filetype.get(), directory.get()))
+    update_thread = threading.Thread(app.update_idletasks())
+    download_thread.start()
+    update_thread.start()
 
-    sleep(1)
-    messagebox.showinfo("Download complete", "Sucessfully downloaded video")
+
+
 
 
 # Opens a file browser where you select your downloads directory, defaults to the standard windows directory
