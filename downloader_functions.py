@@ -1,9 +1,8 @@
-from PIL import Image
+from PIL import Image, ImageTk
 from io import BytesIO
 from pytube import YouTube
+import os
 import requests
-
-yt = "https://www.youtube.com/watch?v=jBuc76nfuKA"
 
 
 def getImage(URL):
@@ -19,13 +18,19 @@ def getImage(URL):
     img = Image.open(BytesIO(b_value))
     return img
 
-def download_video(video: YouTube, file_type: str, download_dir: str):
+
+def download_video(link: str, file_type: str, download_dir: str):
+    """
+    Downloads a youtube video either mp3 or mp4 using pytube
+    Usage: download_video(link, "mp3" download_dir)
+    """
     # Checks which filetype is used
     video_download = None
+    video = YouTube(link)
     if file_type == "mp4":  # Downloads highest mp4 resolution
         video.streams.get_highest_resolution().download(download_dir)
 
-    if file_type == "mp3":  #
+    if file_type == "mp3":  # video as only audio then renames the file to .mp3
         audio_stream = video.streams.filter(only_audio=True).first()
         out_file = audio_stream.download(download_dir)
         base, ext = os.path.splitext(out_file)
@@ -48,8 +53,11 @@ def download_video(video: YouTube, file_type: str, download_dir: str):
                     name += 1
 
 
+def getThumbnail(link):
+    thumbnail = YouTube(link).thumbnail_url
+    return thumbnail
+
 
 if __name__ == "__main__":
+    yt = "https://www.youtube.com/watch?v=jBuc76nfuKA"
     print("test")
-
-
