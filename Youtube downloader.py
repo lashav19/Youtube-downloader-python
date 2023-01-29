@@ -5,7 +5,7 @@ import customtkinter
 import tkinter
 from tkinter import messagebox
 import os
-from getImageUrl import getImage
+from downloader_functions import getImage, download_video
 from time import sleep
 
 
@@ -25,9 +25,7 @@ def downloader():  # Downloads the youtube video
         "Heads up", "The program will freeze sometimes, just give it some time")
 
     video = YouTube(link.get())
-
-    urlImage = getImage(video.thumbnail_url)
-    showThumbnail = Picture(urlImage, size=(250, 200))
+    showThumbnail = Picture(getImage(video.thumbnail_url), size=(250, 200))
 
     tn = Label(app, text="", image=showThumbnail, height=40, width=150)
     tn.place(relx=0.2, rely=0.4, anchor=tkinter.CENTER)
@@ -41,33 +39,7 @@ def downloader():  # Downloads the youtube video
     messagebox.showinfo("Download complete", "Sucessfully downloaded video")
 
 
-def download_video(video: YouTube, file_type: str, download_dir: str):
-    # Checks which filetype is used
-    video_download = None
-    if file_type == "mp4":  # Downloads highest mp4 resolution
-        video.streams.get_highest_resolution().download(download_dir)
 
-    if file_type == "mp3":  #
-        audio_stream = video.streams.filter(only_audio=True).first()
-        out_file = audio_stream.download(download_dir)
-        base, ext = os.path.splitext(out_file)
-        new_file = base + '.mp3'
-        # Renaming the file to mp3 because it downloads as a "mp4" file with no video
-        try:
-            os.rename(out_file, new_file)
-        except FileExistsError:  # If the file name already exists it adds _+1 to the file name
-            name = 1
-            while True:
-                file, extension = os.path.splitext(new_file)
-                file_new = f"{file}_{name}.mp3"
-                print(base + f"_{name}.mp3")
-
-                try:
-                    os.rename(out_file, file_new)
-                    break
-                except FileExistsError:
-                    print(f"Retry -> Name = {name}")
-                    name += 1
 
 
 # Opens a file browser where you select your downloads directory, defaults to the standard windows directory
