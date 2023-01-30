@@ -1,8 +1,6 @@
 import customtkinter
 import tkinter
-from tkinter import messagebox
 from downloader_functions import *
-from time import sleep
 import threading
 
 
@@ -15,12 +13,12 @@ OptionMenu = customtkinter.CTkOptionMenu
 ProgressBar = customtkinter.CTkProgressBar
 
 def downloader():  # Downloads the youtube video
-    def updateProgress(percent):
-        if percent is None:
-            errorWindow("Error", "File type not found")
-            return
+    def updateProgress(percent):  # updates the download progressbar
         pb.set(percent)
-        app.after(100, updateProgress)
+        print(percent)
+        app.update_idletasks()
+        app.update()
+
 
     if link.get() == "":  # checks if there is a link that is input
         errorWindow("Error", "Please input video link")
@@ -28,25 +26,31 @@ def downloader():  # Downloads the youtube video
     messagebox.showinfo(
         "Heads up", "The program will freeze sometimes, just give it some time")
 
+    # get thumbnail
     showThumbnail = Picture(
         getImage(getThumbnail(link.get())), size=(300, 200))
 
+    # show video thumbnail
     tn = Label(app, text="", image=showThumbnail, height=40, width=150)
     tn.place(relx=0.17, rely=0.4, anchor=tkinter.CENTER)
 
+
+    # download progressbar
     pb = ProgressBar(app)
     pb.place(relx=0.4,rely=0.7)
     pb.set(0)
 
     app.update_idletasks()
     # calls function to download the video
-
-    download_thread = threading.Thread(download_video(link.get(), filetype.get(), directory.get(), updateProgress, app))
-    update_thread = threading.Thread(app.update_idletasks())
+    download_thread = threading.Thread(asyncio.run(download_video(link.get(), filetype.get(), directory.get(), updateProgress, app)))
     download_thread.start()
+    update_thread = threading.Thread(updateApp())
     update_thread.start()
 
 
+
+def updateApp():
+    app.update()
 
 
 # Opens a file browser where you select your downloads directory, defaults to the standard windows directory
@@ -57,8 +61,6 @@ def fileBrowse():
 
 
 # Shows error window, takes error code (title of window) and message  to display
-
-
 def errorWindow(errorCode, message):
     messagebox.showerror(errorCode, message)
 
