@@ -1,9 +1,9 @@
+import os
+import requests
 from PIL import Image
 from io import BytesIO
 from pytube import YouTube
 from tkinter import messagebox
-import os
-import requests
 
 
 def getImage(URL):
@@ -20,37 +20,36 @@ def getImage(URL):
     return img
 
 
-def download_video(link: str, file_type: str, download_dir: str, callback):
+def download_video(link: str, file_type: str, download_dir: str, callback, app):
     """
     Downloads a youtube video either mp3 or mp4 using pytube
     Usage: download_video(link, "mp3" download_dir)
     """
 
-    def progress(chunk, file, bytes_remaining):
+    def updateProgress(chunk, file_handle, bytes_remaining):
         percent = (stream.filesize - bytes_remaining) / stream.filesize * 100
+        print(percent)
         callback(percent)
 
-
-    video = YouTube(link)
-    #checks which filetype is used
+    # Checks which filetype is used
+    video_download = None
+    video = YouTube(link, on_progress_callback=updateProgress)
     if file_type == "mp4":  # Downloads highest mp4 resolution
-        stream = video.streams.get_highest_resolution().download(download_dir)
+        stream = video.streams.get_highest_resolution()
+        stream.download(download_dir)
 
 
     if file_type == "mp3":  # video as only audio then renames the file to .mp3
         stream = video.streams.filter(only_audio=True).first()
-        out_file = stream.download(download_dir, progress_callback=progress)
-        base, ext = os.path.splitext(out_file)
-        new_file = base + '.mp3'
-        # Renaming the file to mp3 because it downloads as a "mp4" file with no video
         try:
-            os.rename(out_file, new_file)
+            out_file = stream.download(download_dir, chunk_size=1024, callback=callback)
+        # Renaming the the file because a duplicate exist
         except FileExistsError:  # If the file name already exists it adds _+1 to the file name
             name = 1
             while True:
-                file, extension = os.path.splitext(new_file)
-                file_new = f"{file}_{name}.mp3"
-                print(base + f"_{name}.mp3")
+                file, extension = os.path.splitext(out_file)
+                file_new = f"{out_file}_{name}.mp3"
+                print(f"{out_file}_{name}.mp3")
 
                 try:
                     os.rename(out_file, file_new)
@@ -58,8 +57,10 @@ def download_video(link: str, file_type: str, download_dir: str, callback):
                 except FileExistsError:
                     print(f"Retry -> Name = {name}")
                     name += 1
-        video.register_on_complete_callback(on_complete)
-def on_complete():
+    complete()
+
+
+def complete():
     messagebox.showinfo("Download complete", "Successfully downloaded video")
 
 def getThumbnail(link):
