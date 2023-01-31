@@ -12,6 +12,8 @@ Picture = customtkinter.CTkImage
 OptionMenu = customtkinter.CTkOptionMenu
 ProgressBar = customtkinter.CTkProgressBar
 
+
+
 def downloader():  # Downloads the youtube video
     def updateProgress(percent):  # updates the download progressbar
         pb.set(percent)
@@ -42,10 +44,14 @@ def downloader():  # Downloads the youtube video
 
     app.update_idletasks()
     # calls function to download the video
-    download_thread = threading.Thread(asyncio.run(download_video(link.get(), filetype.get(), directory.get(), updateProgress, app)))
+    download_thread = threading.Thread(asyncio.run(download_video(link.get(), filetype.get(), directory.get(),
+                                                                  updateProgress, app)))
+
     download_thread.start()
     update_thread = threading.Thread(updateApp())
     update_thread.start()
+
+    pb.destroy()
 
 
 
@@ -107,9 +113,11 @@ if __name__ == "__main__":
 
     # button that calls the downloader function
     start = Button(app, text="Download video", width=250, command=downloader)
+
     start.place(relx=0.5, rely=0.65, anchor=tkinter.CENTER)
 
     # label for getting the thumbnail
 
     # starting the window
-    app.mainloop()
+    mainloop_thread = threading.Thread(app.mainloop())
+    mainloop_thread.start()

@@ -31,6 +31,7 @@ async def download_video(link: str, file_type: str, download_dir: str, callback,
     """
 
     def updateProgress(percent):
+        sleep(0.2)
         callback(percent)
         app.update()
         app.update_idletasks()
@@ -61,7 +62,7 @@ async def download_video(link: str, file_type: str, download_dir: str, callback,
         try:
             app.update_idletasks()
             updateProgress(0.6)
-            sleep(0.2)
+            sleep(0.24)
             updateProgress(0.8)
             os.rename(out_file, new_file)
         # Renaming the the file because a duplicate exist
@@ -85,6 +86,7 @@ async def download_video(link: str, file_type: str, download_dir: str, callback,
 
 def complete():
     messagebox.showinfo("Download complete", "Successfully downloaded video")
+
 
 def getThumbnail(link):
     thumbnail = YouTube(link).thumbnail_url
