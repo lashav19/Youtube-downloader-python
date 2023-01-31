@@ -56,8 +56,10 @@ def downloader():  # Downloads the youtube video
 
 
 def updateApp():
-    app.update()
-
+    try:
+        app.update()
+    except ValueError:
+        return
 
 # Opens a file browser where you select your downloads directory, defaults to the standard windows directory
 def fileBrowse():
@@ -93,7 +95,7 @@ if __name__ == "__main__":
     try:
         scriptDir = os.path.dirname(os.path.abspath(__file__))
         imgpath = os.path.join(
-            scriptDir, "Youtube-downloader", "Exe", 'folder.png')
+            scriptDir, "Youtube-downloader", 'folder.png')
         folder = Image.open(imgpath)
     except FileNotFoundError:
         folder = Image.open("folder.png")
