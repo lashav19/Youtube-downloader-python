@@ -1,8 +1,12 @@
-from PIL import Image, ImageTk
+import os
+import threading
+import requests
+import asyncio
+from PIL import Image
 from io import BytesIO
 from pytube import YouTube
-import os
-import requests
+from tkinter import messagebox
+from time import sleep
 
 
 def getImage(URL):
@@ -18,40 +22,74 @@ def getImage(URL):
     img = Image.open(BytesIO(b_value))
     return img
 
+def complete():
+    messagebox.showinfo("Download complete", "Successfully downloaded video")
 
-def download_video(link: str, file_type: str, download_dir: str):
+
+async def download_video(link: str, file_type: str, download_dir: str, callback, app):
     """
+    uses asyncio to run the function asyncrously to the code
     Downloads a youtube video either mp3 or mp4 using pytube
     Usage: download_video(link, "mp3" download_dir)
     """
+
+    async def updateProgress(start, finish):
+        for i in range(start, finish):
+            sleep(0.1)
+            callback(i/100)
+
+        app.update()
+        app.update_idletasks()
+
+
     # Checks which filetype is used
     video_download = None
+    global video
+    global ddir
+    ddir = download_dir
     video = YouTube(link)
+
     if file_type == "mp4":  # Downloads highest mp4 resolution
-        video.streams.get_highest_resolution().download(download_dir)
+        asyncio.run(updateProgress(0, 20))
+        app.update_idletasks()
+        stream = video.streams.get_highest_resolution()
+        asyncio.run(updateProgress(50))
+        stream.download(download_dir)
+
 
     if file_type == "mp3":  # video as only audio then renames the file to .mp3
-        audio_stream = video.streams.filter(only_audio=True).first()
-        out_file = audio_stream.download(download_dir)
-        base, ext = os.path.splitext(out_file)
-        new_file = base + '.mp3'
-        # Renaming the file to mp3 because it downloads as a "mp4" file with no video
-        try:
-            os.rename(out_file, new_file)
-        except FileExistsError:  # If the file name already exists it adds _+1 to the file name
-            name = 1
-            while True:
-                file, extension = os.path.splitext(new_file)
-                file_new = f"{file}_{name}.mp3"
-                print(base + f"_{name}.mp3")
+        await updateProgress(0, 20)
+        app.update_idletasks()
+        download_thread = threading.Thread(target=download)
+        update_thread = threading.Thread(await updateProgress(20, 100))
+        update_thread.start()
+        download_thread.start()
+        app.mainloop()
 
-                try:
-                    os.rename(out_file, file_new)
-                    break
-                except FileExistsError:
-                    print(f"Retry -> Name = {name}")
-                    name += 1
+def download():
 
+    stream = video.streams.filter(only_audio=True).first()
+    out_file = stream.download(ddir)
+    base, ext = os.path.splitext(out_file)
+    new_file = base + ".mp3"
+    try:
+        sleep(0.24)
+        os.rename(out_file, new_file)
+    # Renaming the the file because a duplicate exist
+    except FileExistsError:  # If the file name already exists it adds _+1 to the file name
+        name = 1
+        while True:
+            file, extension = os.path.splitext(new_file)
+            file_new = f"{file}_{name}.mp3"
+            print(base + f"_{name}.mp3")
+            try:
+                os.rename(out_file, file_new)
+                break
+            except FileExistsError:
+                print(f"Retry -> Name = {name}")
+                name += 1
+            
+        complete()
 
 def getThumbnail(link):
     thumbnail = YouTube(link).thumbnail_url

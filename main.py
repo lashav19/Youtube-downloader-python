@@ -1,9 +1,6 @@
 import customtkinter
 import tkinter
-from tkinter import messagebox
-import os
 from downloader_functions import *
-from time import sleep
 import threading
 
 
@@ -13,29 +10,56 @@ Button = customtkinter.CTkButton
 Entry = customtkinter.CTkEntry
 Picture = customtkinter.CTkImage
 OptionMenu = customtkinter.CTkOptionMenu
+ProgressBar = customtkinter.CTkProgressBar
+
 
 
 def downloader():  # Downloads the youtube video
+    def updateProgress(percent):  # updates the download progressbar
+        pb.set(percent)
+        print(percent)
+        app.update_idletasks()
+        app.update()
+
+
     if link.get() == "":  # checks if there is a link that is input
         errorWindow("Error", "Please input video link")
         return
     messagebox.showinfo(
         "Heads up", "The program will freeze sometimes, just give it some time")
 
+    # get thumbnail
     showThumbnail = Picture(
         getImage(getThumbnail(link.get())), size=(300, 200))
 
+    # show video thumbnail
     tn = Label(app, text="", image=showThumbnail, height=40, width=150)
     tn.place(relx=0.17, rely=0.4, anchor=tkinter.CENTER)
 
+
+    # download progressbar
+    pb = ProgressBar(app)
+    pb.place(relx=0.4,rely=0.7)
+    pb.set(0)
+
     app.update_idletasks()
-
     # calls function to download the video
-    download_video(link.get(), filetype.get(), directory.get())
+    download_thread = threading.Thread(asyncio.run(download_video(link.get(), filetype.get(), directory.get(),
+                                                                  updateProgress, app)))
 
-    sleep(1)
-    messagebox.showinfo("Download complete", "Sucessfully downloaded video")
+    download_thread.start()
+    update_thread = threading.Thread(updateApp())
+    update_thread.start()
 
+    pb.destroy()
+
+
+
+def updateApp():
+    try:
+        app.update()
+    except ValueError:
+        return
 
 # Opens a file browser where you select your downloads directory, defaults to the standard windows directory
 def fileBrowse():
@@ -45,8 +69,6 @@ def fileBrowse():
 
 
 # Shows error window, takes error code (title of window) and message  to display
-
-
 def errorWindow(errorCode, message):
     messagebox.showerror(errorCode, message)
 
@@ -73,7 +95,7 @@ if __name__ == "__main__":
     try:
         scriptDir = os.path.dirname(os.path.abspath(__file__))
         imgpath = os.path.join(
-            scriptDir, "Youtube-downloader", "Exe", 'folder.png')
+            scriptDir, "Youtube-downloader", 'folder.png')
         folder = Image.open(imgpath)
     except FileNotFoundError:
         folder = Image.open("folder.png")
@@ -93,9 +115,11 @@ if __name__ == "__main__":
 
     # button that calls the downloader function
     start = Button(app, text="Download video", width=250, command=downloader)
+
     start.place(relx=0.5, rely=0.65, anchor=tkinter.CENTER)
 
     # label for getting the thumbnail
 
     # starting the window
-    app.mainloop()
+    mainloop_thread = threading.Thread(app.mainloop())
+    mainloop_thread.start()
