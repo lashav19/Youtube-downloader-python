@@ -35,13 +35,47 @@ async def download_video(link: str, file_type: str, download_dir: str, callback,
 
     async def updateProgress(start, finish):
         for i in range(start, finish):
-            sleep(0.1)
-            callback(i/100)
+            sleep(0.05)
+            callback(i+1/100)
 
         app.update()
         app.update_idletasks()
 
+    def getmp3():
 
+        stream = video.streams.filter(only_audio=True).first()
+        out_file = stream.download(ddir)
+        base, ext = os.path.splitext(out_file)
+        new_file = base + ".mp3"
+        try:
+            sleep(0.24)
+            os.rename(out_file, new_file)
+        # Renaming the the file because a duplicate exist
+        except FileExistsError:  # If the file name already exists it adds _+1 to the file name
+            name = 1
+            while True:
+                file, extension = os.path.splitext(new_file)
+                file_new = f"{file}_{name}.mp3"
+                print(base + f"_{name}.mp3")
+                try:
+                    os.rename(out_file, file_new)
+                    break
+                except FileExistsError:
+                    print(f"Retry -> Name = {name}")
+                    name += 1
+
+            complete()
+
+    def getmp4():
+        def updateRest():
+            for i in range(70,100):
+                sleep(0.02)
+                callback(i)
+        stream = video.streams.get_highest_resolution()
+        stream.download(download_dir)
+        update = threading.Thread(updateRest())
+        update.start()
+        complete()
     # Checks which filetype is used
     video_download = None
     global video
@@ -50,46 +84,25 @@ async def download_video(link: str, file_type: str, download_dir: str, callback,
     video = YouTube(link)
 
     if file_type == "mp4":  # Downloads highest mp4 resolution
-        asyncio.run(updateProgress(0, 20))
-        app.update_idletasks()
-        stream = video.streams.get_highest_resolution()
-        asyncio.run(updateProgress(50))
-        stream.download(download_dir)
+        await updateProgress(0,70)
+        mp4 = threading.Thread(getmp4())
+        mp4.start()
+
+
+
 
 
     if file_type == "mp3":  # video as only audio then renames the file to .mp3
         await updateProgress(0, 20)
         app.update_idletasks()
-        download_thread = threading.Thread(target=download)
+        download_thread = threading.Thread(target=getmp3())
         update_thread = threading.Thread(await updateProgress(20, 100))
         update_thread.start()
         download_thread.start()
         app.mainloop()
 
-def download():
 
-    stream = video.streams.filter(only_audio=True).first()
-    out_file = stream.download(ddir)
-    base, ext = os.path.splitext(out_file)
-    new_file = base + ".mp3"
-    try:
-        sleep(0.24)
-        os.rename(out_file, new_file)
-    # Renaming the the file because a duplicate exist
-    except FileExistsError:  # If the file name already exists it adds _+1 to the file name
-        name = 1
-        while True:
-            file, extension = os.path.splitext(new_file)
-            file_new = f"{file}_{name}.mp3"
-            print(base + f"_{name}.mp3")
-            try:
-                os.rename(out_file, file_new)
-                break
-            except FileExistsError:
-                print(f"Retry -> Name = {name}")
-                name += 1
-            
-        complete()
+
 
 def getThumbnail(link):
     thumbnail = YouTube(link).thumbnail_url

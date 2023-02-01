@@ -39,7 +39,7 @@ def downloader():  # Downloads the youtube video
 
     # download progressbar
     pb = ProgressBar(app)
-    pb.place(relx=0.4,rely=0.7)
+    pb.place(relx=0.4, rely=0.7)
     pb.set(0)
 
     app.update_idletasks()
@@ -81,6 +81,15 @@ if __name__ == "__main__":
     # define app and values
     app = customtkinter.CTk()
     app.title("Youtube Downloader")
+
+    try:
+        scriptDir = os.path.dirname(os.path.abspath(__file__))
+        imgpath = os.path.join(
+            scriptDir, "Youtube-downloader", 'Youtube.ico')
+        folder = Image.open(imgpath)
+    except FileNotFoundError:
+        folder = Image.open("folder.png")
+
     app.geometry("1000x700")
 
     # widgets
@@ -91,12 +100,12 @@ if __name__ == "__main__":
         app, placeholder_text="Youtube link", width=300)
     link.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
 
-    # Failsafe for both testing and production code so no mixups happen
+    # Failsafe for both testing and production code so no mix-ups happen
     try:
         scriptDir = os.path.dirname(os.path.abspath(__file__))
-        imgpath = os.path.join(
+        imgPath = os.path.join(
             scriptDir, "Youtube-downloader", 'folder.png')
-        folder = Image.open(imgpath)
+        folder = Image.open(imgPath)
     except FileNotFoundError:
         folder = Image.open("folder.png")
 
@@ -110,16 +119,14 @@ if __name__ == "__main__":
 
     Label(app, text="Filetype:", font=("Helvetica", 15)).place(
         relx=0.38, rely=0.55, anchor=tkinter.CENTER)
+
     filetype = OptionMenu(master=app, values=["mp3", "mp4"])
     filetype.place(relx=0.50, rely=0.55, anchor=tkinter.CENTER)
 
     # button that calls the downloader function
     start = Button(app, text="Download video", width=250, command=downloader)
-
     start.place(relx=0.5, rely=0.65, anchor=tkinter.CENTER)
 
-    # label for getting the thumbnail
-
-    # starting the window
+    # starting the window and runs as a separate thread
     mainloop_thread = threading.Thread(app.mainloop())
     mainloop_thread.start()
